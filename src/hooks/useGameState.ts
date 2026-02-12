@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import type { User, UpgradeType, Upgrade } from '../types';
 import { UPGRADE_DEFINITIONS } from '../constants/gameData';
@@ -76,24 +76,34 @@ export function useGameState({ user }: UseGameStateProps) {
         return () => clearInterval(timer);
     }, [maxEnergy, energyRegen, passiveIncome]);
 
+    // Refs for state to access in interval without resetting it
+    const stateRef = useRef({ energy, snips, allTimeSnips });
+
+    useEffect(() => {
+        stateRef.current = { energy, snips, allTimeSnips };
+    }, [energy, snips, allTimeSnips]);
+
     // Periodic Save
     useEffect(() => {
         if (!user || !isSupabaseConfigured) return;
 
         const saveInterval = setInterval(async () => {
-            await supabase
+            const current = stateRef.current;
+            const { error } = await supabase
                 .from('users')
                 .update({
-                    energy_current: Math.floor(energy),
-                    total_snips: Math.floor(snips),
-                    all_time_snips: Math.floor(allTimeSnips),
+                    energy_current: Math.floor(current.energy),
+                    total_snips: Math.floor(current.snips),
+                    all_time_snips: Math.floor(current.allTimeSnips),
                     last_active: new Date().toISOString(),
                 })
                 .eq('telegram_id', user.telegram_id);
+
+            if (error) console.error('Auto-save error:', error);
         }, 10000);
 
         return () => clearInterval(saveInterval);
-    }, [user, energy, snips, allTimeSnips]);
+    }, [user]);
 
     const handleTap = useCallback(() => {
         if (energy >= 1) {
