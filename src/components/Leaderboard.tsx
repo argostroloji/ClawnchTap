@@ -38,6 +38,9 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ isOpen, onClose, curre
                 .order('all_time_snips', { ascending: false })
                 .limit(100)
                 .then(({ data, error }) => {
+                    if (error) {
+                        console.error('Leaderboard error:', error);
+                    }
                     if (data) {
                         setLeaders(data);
                     }
