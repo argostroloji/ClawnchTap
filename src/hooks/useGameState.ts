@@ -11,6 +11,7 @@ interface UseGameStateProps {
 export function useGameState({ user }: UseGameStateProps) {
     const [energy, setEnergy] = useState(1000);
     const [snips, setSnips] = useState(0);
+    const [allTimeSnips, setAllTimeSnips] = useState(0);
     const [tapPower, setTapPower] = useState(1);
     const [maxEnergy, setMaxEnergy] = useState(1000);
     const [passiveIncome, setPassiveIncome] = useState(0);
@@ -22,6 +23,7 @@ export function useGameState({ user }: UseGameStateProps) {
         if (user) {
             setEnergy(user.energy_current);
             setSnips(user.total_snips);
+            setAllTimeSnips(user.all_time_snips || user.total_snips); // Ensure we have a starting value
 
             if (!isSupabaseConfigured) {
                 return;
@@ -68,6 +70,7 @@ export function useGameState({ user }: UseGameStateProps) {
 
             if (passiveIncome > 0) {
                 setSnips(prev => prev + passiveIncome);
+                setAllTimeSnips(prev => prev + passiveIncome);
             }
         }, 1000);
         return () => clearInterval(timer);
@@ -83,18 +86,20 @@ export function useGameState({ user }: UseGameStateProps) {
                 .update({
                     energy_current: Math.floor(energy),
                     total_snips: Math.floor(snips),
+                    all_time_snips: Math.floor(allTimeSnips),
                     last_active: new Date().toISOString(),
                 })
                 .eq('telegram_id', user.telegram_id);
         }, 10000);
 
         return () => clearInterval(saveInterval);
-    }, [user, energy, snips]);
+    }, [user, energy, snips, allTimeSnips]);
 
     const handleTap = useCallback(() => {
         if (energy >= 1) {
             setEnergy((prev) => prev - 1);
             setSnips((prev) => prev + tapPower);
+            setAllTimeSnips((prev) => prev + tapPower);
             return true;
         }
         return false;
@@ -102,6 +107,7 @@ export function useGameState({ user }: UseGameStateProps) {
 
     const addSnips = useCallback((amount: number) => {
         setSnips(prev => prev + amount);
+        setAllTimeSnips(prev => prev + amount);
     }, []);
 
     const purchaseUpgrade = async (type: UpgradeType) => {
