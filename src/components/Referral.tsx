@@ -1,0 +1,60 @@
+
+import React, { useState } from 'react';
+import { useTelegram } from '../hooks/useTelegram';
+
+interface ReferralProps {
+    isOpen: boolean;
+    onClose: () => void;
+    userId?: number;
+}
+
+export const Referral: React.FC<ReferralProps> = ({ isOpen, onClose, userId }) => {
+    const { WebApp } = useTelegram();
+    const [copied, setCopied] = useState(false);
+
+    if (!isOpen) return null;
+
+    const botUsername = 'ClawnchBot'; // Replace with actual bot username
+    const inviteLink = `https://t.me/${botUsername}?startapp=ref_${userId}`;
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(inviteLink);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handleInvite = () => {
+        const text = `Join me in Clawnch: Cyber-Snip and gather Snips! 🦞⚡`;
+        const url = `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(text)}`;
+        WebApp.openTelegramLink(url);
+    };
+
+    return (
+        <div className="fixed bottom-0 left-0 right-0 bg-panel-bg rounded-t-2xl z-50 p-6 border-t border-electric-blue shadow-[0_-5px_20px_rgba(0,0,0,0.8)] animate-slide-up">
+            <div className="flex justify-between items-start mb-4">
+                <div>
+                    <h3 className="text-xl font-bold text-white">INVITE UNIT</h3>
+                    <p className="text-xs text-gray-400">Recruit friends, earn +50,000 Snips each.</p>
+                </div>
+                <button onClick={onClose} className="text-gray-400 font-bold p-1">✕</button>
+            </div>
+
+            <div className="bg-black/50 p-4 rounded-lg flex items-center justify-between mb-4 border border-gray-700">
+                <code className="text-xs text-neon-orange truncate flex-1 mr-2">{inviteLink}</code>
+                <button
+                    onClick={handleCopy}
+                    className="bg-gray-700 hover:bg-gray-600 text-white text-xs px-3 py-2 rounded transition-colors"
+                >
+                    {copied ? 'COPIED!' : 'COPY'}
+                </button>
+            </div>
+
+            <button
+                onClick={handleInvite}
+                className="w-full bg-electric-blue text-black font-bold py-3 rounded-lg shadow-[0_0_15px_rgba(0,255,255,0.5)] active:scale-95 transition-transform"
+            >
+                SEND INVITE SIGNAL 📡
+            </button>
+        </div>
+    );
+};
