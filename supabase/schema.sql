@@ -41,7 +41,7 @@ CREATE POLICY "Enable insert for authenticated users only" ON public.users FOR I
 
 -- Referral Reward Trigger Function
 CREATE OR REPLACE FUNCTION public.handle_new_user_referral()
-RETURNS FILTER AS $$
+RETURNS TRIGGER AS $$
 BEGIN
     -- Check if the new user has a referrer
     IF NEW.referred_by IS NOT NULL THEN
