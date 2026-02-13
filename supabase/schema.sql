@@ -37,7 +37,7 @@ CREATE POLICY "Enable insert for authenticated users only" ON public.users FOR I
 -- CREATE POLICY "Enable all access for now" ON public.users FOR ALL USING (true);
 
 -- Set up Realtime
-alter publication supabase_realtime add table user_upgrades;
+-- alter publication supabase_realtime add table user_upgrades; -- Uncomment if needed found
 
 -- Referral Reward Trigger Function
 CREATE OR REPLACE FUNCTION public.handle_new_user_referral()
