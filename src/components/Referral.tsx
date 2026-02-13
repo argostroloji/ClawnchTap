@@ -13,7 +13,7 @@ export const Referral: React.FC<ReferralProps> = ({ isOpen, onClose, userId }) =
     const [copied, setCopied] = useState(false);
     const [referralCount, setReferralCount] = useState<number>(0);
 
-    const botUsername = 'ClawnchBot'; // Replace with actual bot username
+    const botUsername = 'clawnchtapbot'; // Replace with actual bot username
     const inviteLink = `https://t.me/${botUsername}?startapp=ref_${userId}`;
 
     useEffect(() => {
@@ -46,6 +46,8 @@ export const Referral: React.FC<ReferralProps> = ({ isOpen, onClose, userId }) =
         WebApp.openTelegramLink(url);
     };
 
+    console.log('Generated Invite Link:', inviteLink);
+
     return (
         <div className="fixed bottom-0 left-0 right-0 bg-panel-bg rounded-t-2xl z-50 p-6 border-t border-electric-blue shadow-[0_-5px_20px_rgba(0,0,0,0.8)] animate-slide-up">
             <div className="flex justify-between items-start mb-4">
@@ -57,7 +59,7 @@ export const Referral: React.FC<ReferralProps> = ({ isOpen, onClose, userId }) =
             </div>
 
             <div className="bg-deep-dark p-4 rounded-lg border border-gray-700 mb-4 flex justify-between items-center">
-                <span className="text-gray-400 text-sm">Total Recruits:</span>
+                <span className="text-gray-400 text-sm">Referrals (Recruits):</span>
                 <span className="text-2xl font-bold text-electric-blue">{referralCount}</span>
             </div>
 
