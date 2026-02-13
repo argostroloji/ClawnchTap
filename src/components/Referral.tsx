@@ -1,6 +1,6 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTelegram } from '../hooks/useTelegram';
+import { supabase } from '../lib/supabaseClient';
 
 interface ReferralProps {
     isOpen: boolean;
@@ -11,11 +11,28 @@ interface ReferralProps {
 export const Referral: React.FC<ReferralProps> = ({ isOpen, onClose, userId }) => {
     const { WebApp } = useTelegram();
     const [copied, setCopied] = useState(false);
-
-    if (!isOpen) return null;
+    const [referralCount, setReferralCount] = useState<number>(0);
 
     const botUsername = 'ClawnchBot'; // Replace with actual bot username
     const inviteLink = `https://t.me/${botUsername}?startapp=ref_${userId}`;
+
+    useEffect(() => {
+        if (isOpen && userId) {
+            const fetchReferrals = async () => {
+                const { count, error } = await supabase
+                    .from('users')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('referred_by', userId);
+
+                if (!error && count !== null) {
+                    setReferralCount(count);
+                }
+            };
+            fetchReferrals();
+        }
+    }, [isOpen, userId]);
+
+    if (!isOpen) return null;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(inviteLink);
@@ -37,6 +54,11 @@ export const Referral: React.FC<ReferralProps> = ({ isOpen, onClose, userId }) =
                     <p className="text-xs text-gray-400">Recruit friends, earn +50,000 Snips each.</p>
                 </div>
                 <button onClick={onClose} className="text-gray-400 font-bold p-1">✕</button>
+            </div>
+
+            <div className="bg-deep-dark p-4 rounded-lg border border-gray-700 mb-4 flex justify-between items-center">
+                <span className="text-gray-400 text-sm">Total Recruits:</span>
+                <span className="text-2xl font-bold text-electric-blue">{referralCount}</span>
             </div>
 
             <div className="bg-black/50 p-4 rounded-lg flex items-center justify-between mb-4 border border-gray-700">

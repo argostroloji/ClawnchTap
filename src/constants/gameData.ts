@@ -47,5 +47,12 @@ export const MISSIONS: Mission[] = [
         reward: 50000,
         link: 'https://x.com/Clawnch_Bot',
         icon: '🐦'
+    },
+    {
+        id: 'twitter_follow_argostroloji',
+        title: 'Follow Argostroloji on X',
+        reward: 50000,
+        link: 'https://x.com/Argostroloji',
+        icon: '🐦'
     }
 ];

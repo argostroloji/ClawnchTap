@@ -13,7 +13,7 @@ import { Missions } from './components/Missions';
 import { playSound } from './lib/audio';
 
 function App() {
-  const { user, hapticFeedback } = useTelegram();
+  const { user, hapticFeedback, WebApp } = useTelegram();
   const [dbUser, setDbUser] = useState<User | null>(null);
 
   // UI State
@@ -59,6 +59,14 @@ function App() {
               total_snips: 0,
               all_time_snips: 0,
               energy_current: 1000,
+              referred_by: (() => {
+                const startParam = WebApp.initDataUnsafe.start_param;
+                if (startParam && startParam.startsWith('ref_')) {
+                  const refId = parseInt(startParam.replace('ref_', ''), 10);
+                  return !isNaN(refId) && refId !== user.id ? refId : null;
+                }
+                return null;
+              })()
             })
             .select()
             .single();
