@@ -54,8 +54,9 @@ function App() {
             const startParam = WebApp.initDataUnsafe.start_param;
             if (startParam && startParam.startsWith('ref_')) {
               const refId = parseInt(startParam.replace('ref_', ''), 10);
+              console.log('CHECKING LATE BINDING - RefID:', refId, 'Current User:', existingUser.telegram_id);
               if (!isNaN(refId) && refId !== existingUser.telegram_id) {
-                console.log('Late Referral Binding:', refId);
+                console.log('Late Referral Binding EXECUTE:', refId);
 
                 // Update user
                 const { data: updatedUser, error: updateError } = await supabase
@@ -84,10 +85,12 @@ function App() {
               energy_current: 1000,
               referred_by: (() => {
                 const startParam = WebApp.initDataUnsafe.start_param;
-                console.log('Start Param Debug:', startParam, 'User ID:', user.id);
+                console.log('INIT NEW USER - StartParam:', startParam);
                 if (startParam && startParam.startsWith('ref_')) {
                   const refId = parseInt(startParam.replace('ref_', ''), 10);
-                  return !isNaN(refId) && refId !== user.id ? refId : null;
+                  const valid = !isNaN(refId) && refId !== user.id;
+                  console.log('Parsed RefID:', refId, 'Valid:', valid);
+                  return valid ? refId : null;
                 }
                 return null;
               })()
@@ -226,8 +229,16 @@ function App() {
       />
 
       {/* Version info */}
+      {/* Version info */}
       <div className="absolute bottom-1 left-1 text-[10px] text-gray-700 pointer-events-none z-0">
-        v1.0.0 - ClawnchTap
+        v1.0.1 - RefDebug
+      </div>
+
+      {/* Temporary Debug Overlay */}
+      <div className="fixed top-0 left-0 bg-black/80 text-green-400 text-[10px] p-2 pointer-events-none z-[100] max-w-full break-all">
+        <p>StartParam: {WebApp.initDataUnsafe.start_param || 'NONE'}</p>
+        <p>UserID: {user?.id}</p>
+        <p>RefBy (DB): {dbUser?.referred_by || 'NULL'}</p>
       </div>
     </div>
   );
