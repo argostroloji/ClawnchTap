@@ -13,8 +13,9 @@ export const Referral: React.FC<ReferralProps> = ({ isOpen, onClose, userId }) =
     const [copied, setCopied] = useState(false);
     const [referralCount, setReferralCount] = useState<number>(0);
 
-    const botUsername = 'clawnchtapbot'; // Replace with actual bot username
-    const inviteLink = `https://t.me/${botUsername}?startapp=ref_${userId}`;
+    const botUsername = 'clawnchtapbot';
+    const appName = 'game'; // Must match the Short Name set in BotFather -> /myapps
+    const inviteLink = `https://t.me/${botUsername}/${appName}?startapp=ref_${userId}`;
 
     useEffect(() => {
         if (isOpen && userId) {
