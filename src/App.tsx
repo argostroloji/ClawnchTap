@@ -235,10 +235,16 @@ function App() {
       </div>
 
       {/* Temporary Debug Overlay */}
-      <div className="fixed top-0 left-0 bg-black/80 text-green-400 text-[10px] p-2 pointer-events-none z-[100] max-w-full break-all">
-        <p>StartParam: {WebApp.initDataUnsafe.start_param || 'NONE'}</p>
-        <p>UserID: {user?.id}</p>
+      <div className="fixed top-0 left-0 bg-black/90 text-green-400 text-[10px] p-2 pointer-events-none z-[100] max-w-full break-all font-mono overflow-y-auto max-h-[50vh]">
+        <p className="font-bold text-white mb-1">DEBUG INFO v1.0.2</p>
+        <p>StartParam (SDK): {WebApp.initDataUnsafe.start_param || 'MISSING'}</p>
+        <p>UserId (SDK): {user?.id}</p>
         <p>RefBy (DB): {dbUser?.referred_by || 'NULL'}</p>
+        <div className="border-t border-gray-700 my-1 pt-1 opacity-75">
+          <p>Hash: {window.location.hash.slice(0, 50)}...</p>
+          <p>Search: {window.location.search || 'EMPTY'}</p>
+          <p>Platform: {WebApp.platform}</p>
+        </div>
       </div>
     </div>
   );
