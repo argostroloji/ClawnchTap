@@ -43,20 +43,37 @@ CREATE POLICY "Enable insert for authenticated users only" ON public.users FOR I
 CREATE OR REPLACE FUNCTION public.handle_new_user_referral()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Check if the new user has a referrer
-    IF NEW.referred_by IS NOT NULL THEN
+    -- Check if it's a valid referral event:
+    -- 1. INSERT with a referrer
+    -- 2. UPDATE where referred_by changes from NULL to a value
+    IF (TG_OP = 'INSERT' AND NEW.referred_by IS NOT NULL) OR
+       (TG_OP = 'UPDATE' AND OLD.referred_by IS NULL AND NEW.referred_by IS NOT NULL) THEN
+       
         -- 1. Add 50,000 Snips to the Referrer
         UPDATE public.users
         SET total_snips = total_snips + 50000,
             all_time_snips = all_time_snips + 50000
         WHERE telegram_id = NEW.referred_by;
 
-        -- 2. Add 50,000 Snips to the New User (Referee)
-        -- Since this is an AFTER INSERT trigger, we need to update the row again.
+        -- 2. Add 50,000 Snips to the Referee (The user triggering this)
+        -- For UPDATE, we can just modify the NEW record directly if it's a BEFORE trigger, 
+        -- but for AFTER trigger (which we need for cross-table updates usually), we update the table.
+        -- To avoid recursion loop, verify logic. 
+        -- Actually, for simplicity in standard SQL, running an UPDATE on the same table in an AFTER UPDATE trigger 
+        -- can be tricky (recursion).
+        -- BETTER APPROACH: Just update the referrer here. 
+        -- AND assuming the caller (App.tsx) or a separate mechanism handles the user's own bonus?
+        -- NO, we want it atomic.
+        
+        -- Let's use a WHERE clause to ensure we don't loop endlessly:
+        -- But for the user themselves, we accept that 'handle_referral_reward' might technically re-fire 
+        -- but the condition (OLD.referred_by IS NULL) won't match next time because it is now SET.
+        
         UPDATE public.users
         SET total_snips = total_snips + 50000,
             all_time_snips = all_time_snips + 50000
         WHERE telegram_id = NEW.telegram_id;
+        
     END IF;
     RETURN NEW;
 END;
@@ -65,6 +82,6 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Create the Trigger
 DROP TRIGGER IF EXISTS on_auth_user_created_referral ON public.users;
 CREATE TRIGGER on_auth_user_created_referral
-AFTER INSERT ON public.users
+AFTER INSERT OR UPDATE OF referred_by ON public.users
 FOR EACH ROW
 EXECUTE FUNCTION public.handle_new_user_referral();

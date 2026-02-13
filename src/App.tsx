@@ -49,6 +49,29 @@ function App() {
           .single();
 
         if (existingUser) {
+          // LATE REFERRAL BINDING: If user exists but has no referrer, check start_param
+          if (!existingUser.referred_by) {
+            const startParam = WebApp.initDataUnsafe.start_param;
+            if (startParam && startParam.startsWith('ref_')) {
+              const refId = parseInt(startParam.replace('ref_', ''), 10);
+              if (!isNaN(refId) && refId !== existingUser.telegram_id) {
+                console.log('Late Referral Binding:', refId);
+
+                // Update user
+                const { data: updatedUser, error: updateError } = await supabase
+                  .from('users')
+                  .update({ referred_by: refId })
+                  .eq('telegram_id', existingUser.telegram_id)
+                  .select()
+                  .single();
+
+                if (!updateError && updatedUser) {
+                  setDbUser(updatedUser);
+                  return; // Exit here as we set the user
+                }
+              }
+            }
+          }
           setDbUser(existingUser);
         } else if (!error || error.code === 'PGRST116') {
           const { data: newUser } = await supabase
