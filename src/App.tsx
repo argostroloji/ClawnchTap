@@ -61,6 +61,7 @@ function App() {
               energy_current: 1000,
               referred_by: (() => {
                 const startParam = WebApp.initDataUnsafe.start_param;
+                console.log('Start Param Debug:', startParam, 'User ID:', user.id);
                 if (startParam && startParam.startsWith('ref_')) {
                   const refId = parseInt(startParam.replace('ref_', ''), 10);
                   return !isNaN(refId) && refId !== user.id ? refId : null;

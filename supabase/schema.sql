@@ -37,5 +37,34 @@ CREATE POLICY "Enable insert for authenticated users only" ON public.users FOR I
 -- CREATE POLICY "Enable all access for now" ON public.users FOR ALL USING (true);
 
 -- Set up Realtime
-alter publication supabase_realtime add table users;
 alter publication supabase_realtime add table user_upgrades;
+
+-- Referral Reward Trigger Function
+CREATE OR REPLACE FUNCTION public.handle_new_user_referral()
+RETURNS FILTER AS $$
+BEGIN
+    -- Check if the new user has a referrer
+    IF NEW.referred_by IS NOT NULL THEN
+        -- 1. Add 50,000 Snips to the Referrer
+        UPDATE public.users
+        SET total_snips = total_snips + 50000,
+            all_time_snips = all_time_snips + 50000
+        WHERE telegram_id = NEW.referred_by;
+
+        -- 2. Add 50,000 Snips to the New User (Referee)
+        -- Since this is an AFTER INSERT trigger, we need to update the row again.
+        UPDATE public.users
+        SET total_snips = total_snips + 50000,
+            all_time_snips = all_time_snips + 50000
+        WHERE telegram_id = NEW.telegram_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create the Trigger
+DROP TRIGGER IF EXISTS on_auth_user_created_referral ON public.users;
+CREATE TRIGGER on_auth_user_created_referral
+AFTER INSERT ON public.users
+FOR EACH ROW
+EXECUTE FUNCTION public.handle_new_user_referral();
