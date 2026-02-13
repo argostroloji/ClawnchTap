@@ -34,13 +34,33 @@ export const Referral: React.FC<ReferralProps> = ({ isOpen, onClose, userId }) =
 
     if (!isOpen) return null;
 
-    const handleCopy = () => {
-        navigator.clipboard.writeText(inviteLink);
-        setCopied(true);
+    const handleCopy = async () => {
+        if (!userId) return;
+
+        try {
+            await navigator.clipboard.writeText(inviteLink);
+            setCopied(true);
+        } catch (err) {
+            console.error('Clipboard API failed', err);
+            // Fallback
+            const textArea = document.createElement("textarea");
+            textArea.value = inviteLink;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                setCopied(true);
+            } catch (fallbackErr) {
+                console.error('Fallback copy failed', fallbackErr);
+            }
+            document.body.removeChild(textArea);
+        }
+
         setTimeout(() => setCopied(false), 2000);
     };
 
     const handleInvite = () => {
+        if (!userId) return;
         const text = `Join me in Clawnch: Cyber-Snip and gather Snips! 🦞⚡`;
         const url = `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(text)}`;
         WebApp.openTelegramLink(url);
@@ -64,10 +84,13 @@ export const Referral: React.FC<ReferralProps> = ({ isOpen, onClose, userId }) =
             </div>
 
             <div className="bg-black/50 p-4 rounded-lg flex items-center justify-between mb-4 border border-gray-700">
-                <code className="text-xs text-neon-orange truncate flex-1 mr-2">{inviteLink}</code>
+                <code className="text-xs text-neon-orange truncate flex-1 mr-2">
+                    {userId ? inviteLink : 'Generating Link...'}
+                </code>
                 <button
                     onClick={handleCopy}
-                    className="bg-gray-700 hover:bg-gray-600 text-white text-xs px-3 py-2 rounded transition-colors"
+                    disabled={!userId}
+                    className={`text-white text-xs px-3 py-2 rounded transition-colors ${!userId ? 'bg-gray-800 cursor-wait' : 'bg-gray-700 hover:bg-gray-600'}`}
                 >
                     {copied ? 'COPIED!' : 'COPY'}
                 </button>
